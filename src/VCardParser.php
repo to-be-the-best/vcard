@@ -305,26 +305,6 @@ class VCardParser implements Iterator
                             $cardData->note = $this->unescape($value);
                             break;
                         case 'GEO':
-                            if (preg_match('/^geo:(\d+\.\d+),(\d+\.\d+)$/', $value, $matches)) {
-                                list($all, $latitude, $longitude, $altitude) = $matches;
-                                $value = array(
-                                    'latitude' => $latitude,
-                                    'longitude' => $longitude,
-                                    'altitude' => $altitude,
-                                );
-                            }
-                            $values = explode(':', $value);
-                            if (count($values) === 1) {
-                                $value = $values[0];
-                            } elseif(count($values) === 2) {
-                                $subresult = $values[1];
-
-                                $value = array(
-                                    'latitude' => $subresult,
-                                    'longitude' => $subresult,
-                                    'altitude' => $subresult,
-                                );
-                            }
                             $cardData->geo = $value;
                             break;
                         case 'GENDER':
