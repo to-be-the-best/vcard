@@ -93,7 +93,7 @@ class VCardParser implements Iterator
     }
 
     /**
-     * @return \stdClass
+     * @return \JeroenDesloovere\VCard\VCardParserModel
      * @throws \OutOfBoundsException
      */
     public function current()
@@ -142,7 +142,7 @@ class VCardParser implements Iterator
      *
      * @param int $i
      *
-     * @return \stdClass
+     * @return \JeroenDesloovere\VCard\VCardParserModel
      *    The card data object.
      */
     public function getCardAtIndex($i)
@@ -180,7 +180,7 @@ class VCardParser implements Iterator
             $line = trim($line);
 
             if (strtoupper($line) === 'BEGIN:VCARD') {
-                $cardData = new \stdClass();
+                $cardData = new VCardParserModel();
             } elseif (strtoupper($line) === 'END:VCARD') {
                 $this->vcardObjects[] = $cardData;
                 $cardData = null;
