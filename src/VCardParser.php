@@ -222,7 +222,7 @@ class VCardParser implements Iterator
 
                     switch ($part) {
                         case 'URL':
-                            if (!isset($cardData->item)) {
+                            if (!is_array($cardData->item)) {
                                 $cardData->item = array();
                             }
                             $value = explode(';', $value);
@@ -247,21 +247,21 @@ class VCardParser implements Iterator
                             $cardData->birthday = $this->parseBirthday($value);
                             break;
                         case 'ADR':
-                            if (!isset($cardData->address)) {
+                            if (!is_array($cardData->address)) {
                                 $cardData->address = array();
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->address[$key][] = $this->parseAddress($value);
                             break;
                         case 'TEL':
-                            if (!isset($cardData->phone)) {
+                            if (!is_array($cardData->phone)) {
                                 $cardData->phone = array();
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->phone[$key][] = $value;
                             break;
                         case 'EMAIL':
-                            if (!isset($cardData->email)) {
+                            if (!is_array($cardData->email)) {
                                 $cardData->email = array();
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
@@ -277,7 +277,7 @@ class VCardParser implements Iterator
                             $cardData->organization = $value;
                             break;
                         case 'URL':
-                            if (!isset($cardData->url)) {
+                            if (!is_array($cardData->url)) {
                                 $cardData->url = array();
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
@@ -311,14 +311,14 @@ class VCardParser implements Iterator
                             $cardData->gender = $value;
                             break;
                         case 'NICKNAME':
-                            if (!isset($cardData->nickname)) {
+                            if (!is_array($cardData->nickname)) {
                                 $cardData->nickname = array();
                             }
                             $cardData->nickname[] = $value;
                             break;
                         case 'X-SKYPE':
                         case 'X-SKYPE-USERNAME':
-                            if (!isset($cardData->skype)) {
+                            if (!is_array($cardData->skype)) {
                                 $cardData->skype = array();
                             }
                             $cardData->skype[] = $value;
@@ -327,7 +327,7 @@ class VCardParser implements Iterator
                             $values = explode(';', $value);
                             switch ($values[0]) {
                                 case 'vnd.android.cursor.item/nickname':
-                                    if (!isset($cardData->nickname)) {
+                                    if (!is_array($cardData->nickname)) {
                                         $cardData->nickname = array();
                                     }
                                     $cardData->nickname[] = $values[1];
