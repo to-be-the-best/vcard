@@ -250,21 +250,21 @@ class VCardParser implements Iterator
                             if (!isset($cardData->address)) {
                                 $cardData->address = array();
                             }
-                            $key = !empty($types) ? implode(';', $types) : 'WORK;POSTAL';
+                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->address[$key][] = $this->parseAddress($value);
                             break;
                         case 'TEL':
                             if (!isset($cardData->phone)) {
                                 $cardData->phone = array();
                             }
-                            $key = !empty($types) ? implode(';', $types) : 'default';
+                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->phone[$key][] = $value;
                             break;
                         case 'EMAIL':
                             if (!isset($cardData->email)) {
                                 $cardData->email = array();
                             }
-                            $key = !empty($types) ? implode(';', $types) : 'default';
+                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->email[$key][] = $value;
                             break;
                         case 'REV':
@@ -280,7 +280,7 @@ class VCardParser implements Iterator
                             if (!isset($cardData->url)) {
                                 $cardData->url = array();
                             }
-                            $key = !empty($types) ? implode(';', $types) : 'default';
+                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->url[$key][] = $value;
                             break;
                         case 'TITLE':
