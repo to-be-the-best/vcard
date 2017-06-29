@@ -4,11 +4,12 @@ namespace JeroenDesloovere\VCard\tests;
 
 use JeroenDesloovere\VCard\VCard;
 use JeroenDesloovere\VCard\VCardParser;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Unit tests for our VCard parser.
  */
-class VCardParserTest extends \PHPUnit_Framework_TestCase
+class VCardParserTest extends TestCase
 {
     /**
      * @expectedException OutOfBoundsException
@@ -108,7 +109,7 @@ class VCardParserTest extends \PHPUnit_Framework_TestCase
         $vcard->addPhoneNumber('4875446578', 'WORK');
         $vcard->addPhoneNumber('9875445464', 'PREF;WORK;VOICE');
         $parser = new VCardParser($vcard->buildVCard());
-        $this->assertEquals($parser->getCardAtIndex(0)->phone['default'][0], '0984456123');
+        $this->assertEquals($parser->getCardAtIndex(0)->phone['default;undefined'][0], '0984456123');
         $this->assertEquals($parser->getCardAtIndex(0)->phone['WORK'][0], '2015123487');
         $this->assertEquals($parser->getCardAtIndex(0)->phone['WORK'][1], '4875446578');
         $this->assertEquals($parser->getCardAtIndex(0)->phone['PREF;WORK;VOICE'][0], '9875445464');
@@ -146,7 +147,7 @@ class VCardParserTest extends \PHPUnit_Framework_TestCase
         $vcard->addUrl('http://work1.example.com', 'PREF;WORK');
         $vcard->addUrl('http://work2.example.com', 'PREF;WORK');
         $parser = new VCardParser($vcard->buildVCard());
-        $this->assertEquals($parser->getCardAtIndex(0)->url['default'][0], 'http://www.jeroendesloovere.be');
+        $this->assertEquals($parser->getCardAtIndex(0)->url['default;undefined'][0], 'http://www.jeroendesloovere.be');
         $this->assertEquals($parser->getCardAtIndex(0)->url['HOME'][0], 'http://home.example.com');
         $this->assertEquals($parser->getCardAtIndex(0)->url['PREF;WORK'][0], 'http://work1.example.com');
         $this->assertEquals($parser->getCardAtIndex(0)->url['PREF;WORK'][1], 'http://work2.example.com');

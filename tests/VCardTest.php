@@ -13,11 +13,12 @@ require_once __DIR__ . '/../vendor/autoload.php';
  */
 
 use JeroenDesloovere\VCard\VCard;
+use PHPUnit\Framework\TestCase;
 
 /**
  * This class will test our VCard PHP Class which can generate VCards.
  */
-class VCardTest extends \PHPUnit_Framework_TestCase
+class VCardTest extends TestCase
 {
     /**
      * @var VCard
