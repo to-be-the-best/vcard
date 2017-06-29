@@ -3,22 +3,10 @@
 namespace JeroenDesloovere\VCard;
 
 /*
- * Copyright 2010 Thomas Schaaf <Thomaschaaf@gmail.com>
+ * This file is part of the VCard PHP Class from Jeroen Desloovere.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Changes by: Wouter Admiraal <wad@wadmiraal.net>
- * Original code is available at: http://code.google.com/p/zendvcard/
+ * For the full copyright and license information, please view the license
+ * file that was distributed with this source code.
  */
 
 use Iterator;
@@ -29,10 +17,6 @@ use Iterator;
  * This class is heavily based on the Zendvcard project (seemingly abandoned),
  * which is licensed under the Apache 2.0 license.
  * More information can be found at https://code.google.com/archive/p/zendvcard/
- *
- * @author Thomas Schaaf <Thomaschaaf@gmail.com>
- * @author ruzicka.jan
- * @author Wouter Admiraal <wad@wadmiraal.net>
  */
 class VCardParser implements Iterator
 {
@@ -61,28 +45,22 @@ class VCardParser implements Iterator
      * Helper function to parse a file directly.
      *
      * @param string $filename
-     *
-     * @return \JeroenDesloovere\VCard\VCardParser
-     *
+     * @return self
      * @throws \RuntimeException
      */
     public static function parseFromFile($filename)
     {
         if (file_exists($filename) && is_readable($filename)) {
-            return new VCardParser(file_get_contents($filename));
+            return new self(file_get_contents($filename));
         } else {
             throw new \RuntimeException(sprintf("File %s is not readable, or doesn't exist.", $filename));
         }
     }
 
-    /**
-     * VCardParser constructor.
-     * @param $content
-     */
     public function __construct($content)
     {
         $this->content = $content;
-        $this->vcardObjects = array();
+        $this->vcardObjects = [];
         $this->rewind();
         $this->parse();
     }
@@ -211,7 +189,8 @@ class VCardParser implements Iterator
                     } elseif (strpos(strtolower($type), 'charset=') === 0) {
                         try {
                             $value = mb_convert_encoding($value, 'UTF-8', substr($type, 8));
-                        } catch (\Exception $e) { }
+                        } catch (\Exception $e) {
+                        }
                         unset($types[$i]);
                     }
                     $i++;
@@ -248,21 +227,21 @@ class VCardParser implements Iterator
                             break;
                         case 'ADR':
                             if (!is_array($cardData->address)) {
-                                $cardData->address = array();
+                                $cardData->address = [];
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->address[$key][] = $this->parseAddress($value);
                             break;
                         case 'TEL':
                             if (!is_array($cardData->phone)) {
-                                $cardData->phone = array();
+                                $cardData->phone = [];
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->phone[$key][] = $value;
                             break;
                         case 'EMAIL':
                             if (!is_array($cardData->email)) {
-                                $cardData->email = array();
+                                $cardData->email = [];
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->email[$key][] = $value;
@@ -278,7 +257,7 @@ class VCardParser implements Iterator
                             break;
                         case 'URL':
                             if (!is_array($cardData->url)) {
-                                $cardData->url = array();
+                                $cardData->url = [];
                             }
                             $key = !empty($types) ? implode(';', $types) : 'default;undefined';
                             $cardData->url[$key][] = $value;
@@ -303,6 +282,9 @@ class VCardParser implements Iterator
                         case 'NOTE':
                             $value = str_replace(array("\\:", "\\,"), array(':', ','), $value);
                             $cardData->note = $this->unescape($value);
+                            break;
+                        case 'CATEGORIES':
+                            $cardData->categories = array_map('trim', explode(',', $value));
                             break;
                         case 'GEO':
                             $cardData->geo = $value;
@@ -353,13 +335,13 @@ class VCardParser implements Iterator
             $prefix,
             $suffix
         ) = explode(';', $value);
-        return (object) array(
+        return (object) [
             'lastname' => $lastname,
             'firstname' => $firstname,
             'additional' => $additional,
             'prefix' => $prefix,
             'suffix' => $suffix,
-        );
+        ];
     }
 
     /**
@@ -386,7 +368,7 @@ class VCardParser implements Iterator
             $zip,
             $country,
         ) = explode(';', $value);
-        return (object) array(
+        return (object) [
             'name' => $name,
             'extended' => $extended,
             'street' => $street,
@@ -394,7 +376,7 @@ class VCardParser implements Iterator
             'region' => $region,
             'zip' => $zip,
             'country' => $country,
-        );
+        ];
     }
 
     /**

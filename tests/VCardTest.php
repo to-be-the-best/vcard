@@ -16,8 +16,6 @@ use JeroenDesloovere\VCard\VCard;
 
 /**
  * This class will test our VCard PHP Class which can generate VCards.
- *
- * @author Jeroen Desloovere <info@jeroendesloovere.be>
  */
 class VCardTest extends \PHPUnit_Framework_TestCase
 {
@@ -33,12 +31,12 @@ class VCardTest extends \PHPUnit_Framework_TestCase
      */
     public function emailDataProvider()
     {
-        return array(
-            array(array('john@doe.com')),
-            array(array('john@doe.com', 'WORK' => 'john@work.com')),
-            array(array('WORK' => 'john@work.com', 'HOME' => 'john@home.com')),
-            array(array('PREF;WORK' => 'john@work.com', 'HOME' => 'john@home.com')),
-        );
+        return [
+            [['john@doe.com']],
+            [['john@doe.com', 'WORK' => 'john@work.com']],
+            [['WORK' => 'john@work.com', 'HOME' => 'john@home.com']],
+            [['PREF;WORK' => 'john@work.com', 'HOME' => 'john@home.com']],
+        ];
     }
 
     /**
@@ -92,6 +90,11 @@ class VCardTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->vcard, $this->vcard->addCompany(''));
     }
 
+    public function testAddCategories()
+    {
+        $this->assertEquals($this->vcard, $this->vcard->addCategories([]));
+    }
+
     public function testAddEmail()
     {
         $this->assertEquals($this->vcard, $this->vcard->addEmail($this->emailAddress1));
@@ -133,6 +136,30 @@ class VCardTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->vcard, $return);
     }
 
+    public function testAddPhotoWithRemoteJpgPhoto()
+    {
+        $return = $this->vcard->addPhoto(
+            'https://raw.githubusercontent.com/jeroendesloovere/vcard/master/tests/image.jpg',
+            true
+        );
+
+        $this->assertEquals($this->vcard, $return);
+    }
+
+    /**
+     * Test adding remote empty photo
+     *
+     * @expectedException Exception
+     * @expectedExceptionMessage Returned data is not an image.
+     */
+    public function testAddPhotoWithRemoteEmptyJpgPhoto()
+    {
+        $this->vcard->addPhoto(
+            'https://raw.githubusercontent.com/jeroendesloovere/vcard/master/tests/empty.jpg',
+            true
+        );
+    }
+
     public function testAddLogoWithJpgImage()
     {
         $return = $this->vcard->addLogo(__DIR__ . '/image.jpg', true);
@@ -155,12 +182,12 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test adding photo with no value
+     * Test adding local photo using an empty file
      *
-     * @expectedException JeroenDesloovere\VCard\VCardMediaException
-     * @expectedExceptionMessage Nothing returned from URL.
+     * @expectedException Exception
+     * @expectedExceptionMessage Returned data is not an image.
      */
-    public function testAddPhotoWithNoValue()
+    public function testAddPhotoWithEmptyFile()
     {
         $this->vcard->addPhoto(__DIR__ . '/emptyfile', true);
     }
@@ -168,8 +195,8 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding logo with no value
      *
-     * @expectedException JeroenDesloovere\VCard\VCardMediaException
-     * @t@github.com:jeroendesloovere/vcard.gitexpectedExceptionMessage Nothing returned from URL.
+     * @expectedException Exception
+     * @expectedExceptionMessage Returned data is not an image.
      */
     public function testAddLogoWithNoValue()
     {
@@ -179,8 +206,8 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding photo with no photo
      *
-     * @expectedException JeroenDesloovere\VCard\VCardMediaException
-     * @expectedExceptionMessage Returned data aren't an image.
+     * @expectedException Exception
+     * @expectedExceptionMessage Returned data is not an image.
      */
     public function testAddPhotoWithNoPhoto()
     {
@@ -190,8 +217,8 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding logo with no image
      *
-     * @expectedException JeroenDesloovere\VCard\VCardMediaException
-     * @expectedExceptionMessage Returned data aren't an image.
+     * @expectedException Exception
+     * @expectedExceptionMessage Returned data is not an image.
      */
     public function testAddLogoWithNoImage()
     {
@@ -213,7 +240,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
      *
      * @dataProvider emailDataProvider $emails
      */
-    public function testEmail($emails = array())
+    public function testEmail($emails = [])
     {
         foreach ($emails as $key => $email) {
             if (is_string($key)) {
@@ -264,7 +291,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test multiple birthdays
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleBirthdays()
     {
@@ -273,9 +300,20 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test multiple categories
+     *
+     * @expectedException Exception
+     */
+    public function testMultipleCategories()
+    {
+        $this->assertEquals($this->vcard, $this->vcard->addCategories(['1']));
+        $this->assertEquals($this->vcard, $this->vcard->addCategories(['2']));
+    }
+
+    /**
      * Test multiple companies
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleCompanies()
     {
@@ -286,7 +324,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test multiple job titles
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleJobtitles()
     {
@@ -297,7 +335,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test multiple roles
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleRoles()
     {
@@ -308,7 +346,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test multiple names
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleNames()
     {
@@ -319,7 +357,7 @@ class VCardTest extends \PHPUnit_Framework_TestCase
     /**
      * Test multiple notes
      *
-     * @expectedException JeroenDesloovere\VCard\Exception
+     * @expectedException Exception
      */
     public function testMultipleNotes()
     {
