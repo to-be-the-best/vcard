@@ -139,7 +139,7 @@ class VCardParser implements Iterator
     protected function parse()
     {
         // Normalize new lines.
-        $this->content = str_replace(array("\r\n", "\r"), "\n", $this->content);
+        $this->content = str_replace(["\r\n", "\r"], "\n", $this->content);
 
         // RFC2425 5.8.1. Line delimiting and folding
         // Unfolding is accomplished by regarding CRLF immediately followed by
