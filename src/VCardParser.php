@@ -163,6 +163,12 @@ class VCardParser implements Iterator
                 $this->vcardObjects[] = $cardData;
                 $cardData = null;
             } elseif (!empty($line)) {
+                // Strip grouping information. We don't use the group names. We
+                // simply use a list for entries that have multiple values.
+                // As per RFC, group names are alphanumerical, and end with a
+                // period (.).
+                $line = preg_replace('/^\w+\./', '', $line);
+
                 $type = '';
                 $value = '';
                 @list($type, $value) = explode(':', $line, 2);
@@ -171,6 +177,16 @@ class VCardParser implements Iterator
                 $element = strtoupper($types[0]);
 
                 array_shift($types);
+
+                // Normalize types. A type can either be a type-param directly,
+                // or can be prefixed with "type=". E.g.: "INTERNET" or
+                // "type=INTERNET".
+                if (!empty($types)) {
+                    $types = array_map(function($type) {
+                        return preg_replace('/^type=/i', '', $type);
+                    }, $types);
+                }
+
                 $i = 0;
                 $rawValue = false;
                 foreach ($types as $type) {
@@ -196,127 +212,109 @@ class VCardParser implements Iterator
                     $i++;
                 }
 
-                if (preg_match('/^item(\d{1,2})\.([^\:]+)$/', $element, $matches)) {
-                    list($all, $itemidx, $part) = $matches;
-
-                    switch ($part) {
-                        case 'URL':
-                            if (!is_array($cardData->item)) {
-                                $cardData->item = array();
-                            }
-                            $value = explode(';', $value);
-                            if (count($value) === 1) {
-                                $value = preg_replace(array('_$!<', '>!$_'), '', $value);
-                                $value = preg_replace('\\:', ':', $value);
-                            }
-                            $cardData->item[$itemidx][$part] = $value;
-                            break;
-                    }
-                } else {
-                    switch (strtoupper($element)) {
-                        case 'FN':
-                            $cardData->fullname = $value;
-                            break;
-                        case 'N':
-                            foreach ($this->parseName($value) as $key => $val) {
-                                $cardData->{$key} = $val;
-                            }
-                            break;
-                        case 'BDAY':
-                            $cardData->birthday = $this->parseBirthday($value);
-                            break;
-                        case 'ADR':
-                            if (!is_array($cardData->address)) {
-                                $cardData->address = [];
-                            }
-                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
-                            $cardData->address[$key][] = $this->parseAddress($value);
-                            break;
-                        case 'TEL':
-                            if (!is_array($cardData->phone)) {
-                                $cardData->phone = [];
-                            }
-                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
-                            $cardData->phone[$key][] = $value;
-                            break;
-                        case 'EMAIL':
-                            if (!is_array($cardData->email)) {
-                                $cardData->email = [];
-                            }
-                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
-                            $cardData->email[$key][] = $value;
-                            break;
-                        case 'REV':
-                            $cardData->revision = $value;
-                            break;
-                        case 'VERSION':
-                            $cardData->version = $value;
-                            break;
-                        case 'ORG':
-                            $cardData->organization = $value;
-                            break;
-                        case 'URL':
-                            if (!is_array($cardData->url)) {
-                                $cardData->url = [];
-                            }
-                            $key = !empty($types) ? implode(';', $types) : 'default;undefined';
-                            $cardData->url[$key][] = $value;
-                            break;
-                        case 'TITLE':
-                            $cardData->title = $value;
-                            break;
-                        case 'PHOTO':
-                            if ($rawValue) {
-                                $cardData->rawPhoto = $value;
-                            } else {
-                                $cardData->photo = $value;
-                            }
-                            break;
-                        case 'LOGO':
-                            if ($rawValue) {
-                                $cardData->rawLogo = $value;
-                            } else {
-                                $cardData->logo = $value;
-                            }
-                            break;
-                        case 'NOTE':
-                            $value = str_replace(array("\\:", "\\,"), array(':', ','), $value);
-                            $cardData->note = $this->unescape($value);
-                            break;
-                        case 'CATEGORIES':
-                            $cardData->categories = array_map('trim', explode(',', $value));
-                            break;
-                        case 'GEO':
-                            $cardData->geo = $value;
-                            break;
-                        case 'GENDER':
-                            $cardData->gender = $value;
-                            break;
-                        case 'NICKNAME':
-                            if (!is_array($cardData->nickname)) {
-                                $cardData->nickname = array();
-                            }
-                            $cardData->nickname[] = $value;
-                            break;
-                        case 'X-SKYPE':
-                        case 'X-SKYPE-USERNAME':
-                            if (!is_array($cardData->skype)) {
-                                $cardData->skype = array();
-                            }
-                            $cardData->skype[] = $value;
-                            break;
-                        case 'X-ANDROID-CUSTOM':
-                            $values = explode(';', $value);
-                            switch ($values[0]) {
-                                case 'vnd.android.cursor.item/nickname':
-                                    if (!is_array($cardData->nickname)) {
-                                        $cardData->nickname = array();
-                                    }
-                                    $cardData->nickname[] = $values[1];
-                                    break;
-                            }
-                            break;
-                    }
+                switch (strtoupper($element)) {
+                    case 'FN':
+                        $cardData->fullname = $value;
+                        break;
+                    case 'N':
+                        foreach ($this->parseName($value) as $key => $val) {
+                            $cardData->{$key} = $val;
+                        }
+                        break;
+                    case 'BDAY':
+                        $cardData->birthday = $this->parseBirthday($value);
+                        break;
+                    case 'ADR':
+                        if (!is_array($cardData->address)) {
+                            $cardData->address = [];
+                        }
+                        $key = !empty($types) ? implode(';', $types) : 'default;undefined';
+                        $cardData->address[$key][] = $this->parseAddress($value);
+                        break;
+                    case 'TEL':
+                        if (!is_array($cardData->phone)) {
+                            $cardData->phone = [];
+                        }
+                        $key = !empty($types) ? implode(';', $types) : 'default;undefined';
+                        $cardData->phone[$key][] = $value;
+                        break;
+                    case 'EMAIL':
+                        if (!is_array($cardData->email)) {
+                            $cardData->email = [];
+                        }
+                        $key = !empty($types) ? implode(';', $types) : 'default;undefined';
+                        $cardData->email[$key][] = $value;
+                        break;
+                    case 'REV':
+                        $cardData->revision = $value;
+                        break;
+                    case 'VERSION':
+                        $cardData->version = $value;
+                        break;
+                    case 'ORG':
+                        $cardData->organization = $value;
+                        break;
+                    case 'URL':
+                        if (!is_array($cardData->url)) {
+                            $cardData->url = [];
+                        }
+                        $key = !empty($types) ? implode(';', $types) : 'default;undefined';
+                        $cardData->url[$key][] = $value;
+                        break;
+                    case 'TITLE':
+                        $cardData->title = $value;
+                        break;
+                    case 'PHOTO':
+                        if ($rawValue) {
+                            $cardData->rawPhoto = $value;
+                        } else {
+                            $cardData->photo = $value;
+                        }
+                        break;
+                    case 'LOGO':
+                        if ($rawValue) {
+                            $cardData->rawLogo = $value;
+                        } else {
+                            $cardData->logo = $value;
+                        }
+                        break;
+                    case 'NOTE':
+                        $value = str_replace(array("\\:", "\\,"), array(':', ','), $value);
+                        $cardData->note = $this->unescape($value);
+                        break;
+                    case 'CATEGORIES':
+                        $cardData->categories = array_map('trim', explode(',', $value));
+                        break;
+                    case 'GEO':
+                        $cardData->geo = $value;
+                        break;
+                    case 'GENDER':
+                        $cardData->gender = $value;
+                        break;
+                    case 'NICKNAME':
+                        if (!is_array($cardData->nickname)) {
+                            $cardData->nickname = array();
+                        }
+                        $cardData->nickname[] = $value;
+                        break;
+                    case 'X-SKYPE':
+                    case 'X-SKYPE-USERNAME':
+                        if (!is_array($cardData->skype)) {
+                            $cardData->skype = array();
+                        }
+                        $cardData->skype[] = $value;
+                        break;
+                    case 'X-ANDROID-CUSTOM':
+                        $values = explode(';', $value);
+                        switch ($values[0]) {
+                            case 'vnd.android.cursor.item/nickname':
+                                if (!is_array($cardData->nickname)) {
+                                    $cardData->nickname = array();
+                                }
+                                $cardData->nickname[] = $values[1];
+                                break;
+                        }
+                        break;
                 }
             }
         }
